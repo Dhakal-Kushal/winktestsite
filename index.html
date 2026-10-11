@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Detector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to prevent text selection during fast clicking */
+        .no-select {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Smooth transition for the message box */
+        #message-box {
+            transition: all 0.3s ease-in-out;
+            transform: scale(0.95);
+            opacity: 0;
+        }
+        #message-box.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 min-h-screen flex items-center justify-center font-sans text-slate-100 p-4">
+
+    <div class="max-w-md w-full bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700 text-center">
+        
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent mb-2">
+                Click Detector
+            </h1>
+            <p class="text-slate-400 text-sm">
+                Try single-clicking or double-clicking the buttons below to see the detection logic in action.
+            </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <!-- Button 1 -->
+            <button id="btn-alpha" 
+                    class="no-select flex-1 py-3 px-6 rounded-xl font-semibold shadow-lg bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800">
+                Button Alpha
+            </button>
+            
+            <!-- Button 2 -->
+            <button id="btn-beta" 
+                    class="no-select flex-1 py-3 px-6 rounded-xl font-semibold shadow-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-800">
+                Button Beta
+            </button>
+        </div>
+
+        <div class="h-24 flex items-center justify-center">
+            <div id="message-box" class="w-full py-4 px-6 rounded-lg bg-slate-700/50 border border-slate-600 flex items-center justify-center gap-3 hidden">
+                <span id="message-icon" class="text-2xl"></span>
+                <span id="message-text" class="text-lg font-medium tracking-wide"></span>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const delay = 250; // Milliseconds to wait before confirming a single click
+            
+            const messageBox = document.getElementById('message-box');
+            const messageText = document.getElementById('message-text');
+            const messageIcon = document.getElementById('message-icon');
+
+            // Function to handle the UI update based on the click event
+            function displayResult(buttonName, clickType) {
+                // Remove hidden class if it's the first time
+                messageBox.classList.remove('hidden');
+                
+                // Reset animation state
+                messageBox.classList.remove('show');
+                
+                // Force browser reflow to restart animation
+                void messageBox.offsetWidth; 
+                
+                if (clickType === 'single') {
+                    messageIcon.innerHTML = '🖱️';
+                    messageText.innerText = `${buttonName} Single-Clicked!`;
+                    messageBox.className = 'w-full py-4 px-6 rounded-lg border flex items-center justify-center gap-3 show bg-blue-900/30 border-blue-500/50 text-blue-200';
+                } else {
+                    messageIcon.innerHTML = '⚡';
+                    messageText.innerText = `${buttonName} Double-Clicked!`;
+                    messageBox.className = 'w-full py-4 px-6 rounded-lg border flex items-center justify-center gap-3 show bg-purple-900/30 border-purple-500/50 text-purple-200';
+                }
+            }
+
+            // Function to attach click and double-click logic to a button
+            function setupClickDetection(buttonId, buttonName) {
+                const button = document.getElementById(buttonId);
+                let clickTimer = null;
+
+                button.addEventListener('click', (event) => {
+                    // event.detail counts the number of consecutive clicks
+                    // We only want to start the timer on the first click
+                    if (event.detail === 1) {
+                        clickTimer = setTimeout(() => {
+                            displayResult(buttonName, 'single');
+                        }, delay);
+                    }
+                });
+
+                button.addEventListener('dblclick', (event) => {
+                    // Clear the single-click timeout so it doesn't fire
+                    clearTimeout(clickTimer);
+                    // Prevent text selection that naturally happens on double click
+                    event.preventDefault(); 
+                    displayResult(buttonName, 'double');
+                });
+            }
+
+            // Initialize both buttons
+            setupClickDetection('btn-alpha', 'Alpha');
+            setupClickDetection('btn-beta', 'Beta');
+        });
+    </script>
+</body>
+</html>
